@@ -42,7 +42,6 @@
       this.tabControl1 = new System.Windows.Forms.TabControl();
       this.tabPage1 = new System.Windows.Forms.TabPage();
       this.label2 = new System.Windows.Forms.Label();
-      this.tabPage2 = new System.Windows.Forms.TabPage();
       this.tabPage3 = new System.Windows.Forms.TabPage();
       this.rtbLog = new System.Windows.Forms.RichTextBox();
       ((System.ComponentModel.ISupportInitialize)(this.dgvDataView)).BeginInit();
@@ -108,6 +107,7 @@
       // 
       this.btnExecute.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.btnExecute.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+      this.btnExecute.Enabled = false;
       this.btnExecute.FlatAppearance.BorderSize = 0;
       this.btnExecute.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
       this.btnExecute.Font = new System.Drawing.Font("맑은 고딕", 9.749999F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
@@ -172,7 +172,6 @@
       // 
       this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
       this.tabControl1.Controls.Add(this.tabPage1);
-      this.tabControl1.Controls.Add(this.tabPage2);
       this.tabControl1.Controls.Add(this.tabPage3);
       this.tabControl1.Location = new System.Drawing.Point(12, 38);
       this.tabControl1.Name = "tabControl1";
@@ -207,16 +206,6 @@
       this.label2.TabIndex = 6;
       this.label2.Text = "ms";
       this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-
-      // 
-      // tabPage2
-      // 
-      this.tabPage2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
-      this.tabPage2.Location = new System.Drawing.Point(4, 22);
-      this.tabPage2.Name = "tabPage2";
-      this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-      this.tabPage2.Size = new System.Drawing.Size(462, 237);
-      this.tabPage2.TabIndex = 1;
 
       // 
       // tabPage3
@@ -279,7 +268,6 @@
     private System.Windows.Forms.TabPage tabPage3;
     private System.Windows.Forms.TabControl tabControl1;
     private System.Windows.Forms.TabPage tabPage1;
-    private System.Windows.Forms.TabPage tabPage2;
     private System.Windows.Forms.Label label1;
     private System.Windows.Forms.NumericUpDown nudSpeed;
     private System.Windows.Forms.ComboBox txbDataPath;

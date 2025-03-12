@@ -15,15 +15,15 @@ namespace InputMacro
 {
   public partial class Form1 : Form
   {
-    Excel.Application excelApplication = null;
-    Excel.Workbook workbook = null;
-    Excel.Worksheet worksheet = null;
+    Excel.Application _excelApplication = null;
+    Excel.Workbook _workbook = null;
+    Excel.Worksheet _worksheet = null;
 
     private GlobalHook _globalHook;
-    private Macro.Macro _macro = new Macro.Macro();
-    private bool isLoaded = false;
+    private readonly Macro.Macro _macro = new Macro.Macro();
+    private bool _isLoaded = false;
 
-    private List<(ESendKey exe, int x, int y)> _executions = new List<(ESendKey, int, int)>();
+    private readonly List<(ESendKey exe, int x, int y)> _executions = new List<(ESendKey, int, int)>();
     
     public Form1()
     {
@@ -32,6 +32,13 @@ namespace InputMacro
       _macro.BeginExecute += MacroOnBeginExecute;
       _macro.MacroStopped += MacroOnMacroStopped;
       _macro.PropertyChanged += MacroOnPropertyChanged;
+      _macro.RequestedCancellation += MacroOnRequestedCancellation;
+    }
+    private void MacroOnRequestedCancellation(object sender, EventArgs e)
+    {
+      Invoke((MethodInvoker)delegate {
+        btnExecute.Enabled = false;
+      });
     }
     private void MacroOnPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
@@ -41,6 +48,10 @@ namespace InputMacro
           btnExecute.Text = _macro.isExecuting ? "중지 (F9)" : "실행 (F9)";
         });
       }
+      
+      Invoke((MethodInvoker)delegate {
+        btnExecute.Enabled = _macro.isExecuting || _macro.isStandBy;
+      });
     }
     private void MacroOnMacroStopped(object sender, Macro.Macro.MacroStoppedEventArgs e)
     {
@@ -73,7 +84,7 @@ namespace InputMacro
         case LogPriorities.PopUpInfo:
         case LogPriorities.PopUpWarning:
         {
-          MessageBox.Show(e.message, "ipmcr", MessageBoxButtons.OK, e.priority == LogPriorities.PopUpInfo ? MessageBoxIcon.Asterisk : MessageBoxIcon.Warning);
+          MessageBox.Show(e.message,"ipmcr", MessageBoxButtons.OK, e.priority == LogPriorities.PopUpInfo ? MessageBoxIcon.Asterisk : MessageBoxIcon.Warning);
           break;
         }
         default:
@@ -116,11 +127,11 @@ namespace InputMacro
     {
       try
       {
-        excelApplication.Quit();
+        _excelApplication.Quit();
         Log($"Closing Excel File...", LogPriorities.Info);
-        ReleaseObject(workbook);
-        ReleaseObject(worksheet);
-        ReleaseObject(excelApplication);
+        ReleaseObject(_workbook);
+        ReleaseObject(_worksheet);
+        ReleaseObject(_excelApplication);
       }
       catch
       {
@@ -132,21 +143,21 @@ namespace InputMacro
       try
       {
         CloseExcel();
-        isLoaded = false;
+        _isLoaded = false;
         Log($"Clearing Data...", LogPriorities.Info);
         TopMost = false;
         nudSpeed.Value = 0;
         dgvDataView.Columns.Clear();
         _executions.Clear();
         Log($"Open Excel Files...", LogPriorities.Info);
-        excelApplication = new Excel.Application
+        _excelApplication = new Excel.Application
         {
           Visible = true
         };
-        workbook = excelApplication.Workbooks.Open(Path.Combine(Environment.CurrentDirectory, "Data", txbDataPath.Text));
-        worksheet = (Excel.Worksheet)workbook.Worksheets["macro"];
-        workbook.AfterSave += WorkbookOnAfterSave;
-        workbook.BeforeClose += WorkbookOnBeforeClose;
+        _workbook = _excelApplication.Workbooks.Open(Path.Combine(Environment.CurrentDirectory, "Data", txbDataPath.Text));
+        _worksheet = (Excel.Worksheet)_workbook.Worksheets["macro"];
+        _workbook.AfterSave += WorkbookOnAfterSave;
+        _workbook.BeforeClose += WorkbookOnBeforeClose;
         Log($"Waiting to be saved...", LogPriorities.Info);
       }
       catch (Exception ex)
@@ -158,7 +169,7 @@ namespace InputMacro
     private void WorkbookOnBeforeClose(ref bool cancel)
     {
       cancel = false;
-      if (!isLoaded)
+      if (!_isLoaded)
         Invoke((MethodInvoker)delegate {
           Log($"Excel has closed. Please select a macro again.", LogPriorities.Warning);
         });
@@ -184,7 +195,7 @@ namespace InputMacro
           try
           {
             Log($"Load Interval...", LogPriorities.Info);
-            var interval = worksheet.Cells[2, 2] as Excel.Range;
+            var interval = _worksheet.Cells[2, 2] as Excel.Range;
             if (interval?.Value != null && int.TryParse(interval.Value.ToString(), out var itv))
               nudSpeed.Value = itv;
 
@@ -192,7 +203,7 @@ namespace InputMacro
             Log($"Load Columns...", LogPriorities.Info);
             while (true)
             {
-              var columnHeader = worksheet.Cells[2, 3 + r] as Excel.Range;
+              var columnHeader = _worksheet.Cells[2, 3 + r] as Excel.Range;
               if (columnHeader?.Value == null) break;
               dgvDataView.Columns.Add($"a{r}", $"{columnHeader.Value2}");
               Log($"Load Column: {columnHeader.Value}", LogPriorities.Info);
@@ -207,7 +218,7 @@ namespace InputMacro
               var ls = new List<object>();
               for (int i = 0; i < r; i++)
               {
-                var x = worksheet.Cells[3 + c, 3 + i] as Excel.Range;
+                var x = _worksheet.Cells[3 + c, 3 + i] as Excel.Range;
                 ls.Add(x?.Value);
                 if (x?.Value != null && x.Value.ToString() != "")
                   any = true;
@@ -227,8 +238,8 @@ namespace InputMacro
 
               c++;
             }
-            isLoaded = true;
-            workbook.Close(false);
+            _isLoaded = true;
+            _workbook.Close(false);
           }
           catch (Exception exc)
           {
@@ -284,6 +295,8 @@ namespace InputMacro
 
     private void Toggle()
     {
+      if (!btnExecute.Enabled) return;
+      
       if (_macro.isExecuting)
       {
         _macro.Cancel();
@@ -299,9 +312,9 @@ namespace InputMacro
     {
       try
       {
-        workbook.AfterSave -= WorkbookOnAfterSave;
-        workbook.BeforeClose -= WorkbookOnBeforeClose;
-        workbook.Close(false);
+        _workbook.AfterSave -= WorkbookOnAfterSave;
+        _workbook.BeforeClose -= WorkbookOnBeforeClose;
+        _workbook.Close(false);
         CloseExcel();
       }
       catch
