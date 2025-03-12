@@ -4,8 +4,6 @@ using System.Windows.Forms;
 
 namespace InputMacro
 {
-
-
   /*
       [기능]
           - 키 누름, 키 뗌 이벤트 글로벌 후킹
@@ -198,7 +196,7 @@ namespace InputMacro
       UnhookWindowsHookEx(hhook);
     }
 
-    /// <summary> KeyDown 이벤트에 중복되지 않게 핸들러 추가 </summary>
+    /// <summary> KeyDown 이벤트에 핸들러 추가 </summary>
     public void AddKeyDownHandler(KeyEventHandler handler)
     {
       if (OnKeyDown != null && (OnKeyDown.GetInvocationList()?.Contains(handler) ?? false))
@@ -207,13 +205,31 @@ namespace InputMacro
       OnKeyDown += handler;
     }
 
-    /// <summary> KeyDown 이벤트에 중복되지 않게 핸들러 추가 </summary>
+    /// <summary> KeyDown 이벤트에 핸들러 추가 </summary>
     public void AddKeyUpHandler(KeyEventHandler handler)
     {
-      if (OnKeyUp != null && (OnKeyUp.GetInvocationList()?.Contains(handler) ?? false))
+      if (OnKeyUp != null && OnKeyUp.GetInvocationList().Contains(handler))
         return;
 
       OnKeyUp += handler;
+    }
+    
+    /// <summary> KeyDown 이벤트에서 핸들러 제거 </summary>
+    public void RemoveKeyDownHandler(KeyEventHandler handler)
+    {
+      if (OnKeyUp != null && (!OnKeyUp.GetInvocationList().Contains(handler)))
+        return;
+      
+      OnKeyDown -= handler;
+    }
+    
+    /// <summary> KeyUp 이벤트에서 핸들러 제거 </summary>
+    public void RemoveKeyUpHandler(KeyEventHandler handler)
+    {
+      if (OnKeyDown != null && (!OnKeyDown.GetInvocationList().Contains(handler)))
+        return;
+      
+      OnKeyUp -= handler;
     }
 
     /// <summary> 키 누름 이벤트 초기화 </summary>

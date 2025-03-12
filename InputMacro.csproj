@@ -57,6 +57,10 @@
             <DependentUpon>Form1.cs</DependentUpon>
         </Compile>
         <Compile Include="GlobalHook.cs" />
+        <Compile Include="Macro\ESendKey.cs" />
+        <Compile Include="Macro\ExecutableArray.cs" />
+        <Compile Include="Macro\IExecutable.cs" />
+        <Compile Include="Macro\Macro.cs" />
         <Compile Include="Program.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <EmbeddedResource Include="Form1.resx">
