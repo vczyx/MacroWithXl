@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -7,54 +8,100 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using InputMacro.Macro;
 using Excel = Microsoft.Office.Interop.Excel;
 
 namespace InputMacro
 {
   public partial class Form1 : Form
   {
-
     Excel.Application excelApplication = null;
     Excel.Workbook workbook = null;
     Excel.Worksheet worksheet = null;
 
-    private bool _started;
-    private bool started {
-      get => _started;
-      set {
-        _started = value;
-        Invoke((MethodInvoker)delegate { btnExecute.Text = _started ? "중지 (F9)" : "실행 (F9)"; });
-      }
-    }
+    private GlobalHook _globalHook;
+    private Macro.Macro _macro = new Macro.Macro();
+    private bool isLoaded = false;
 
-    private bool _standby = false;
-    private bool standby {
-      get => _standby;
-      set {
-        _standby = value;
-        Invoke((MethodInvoker)delegate { btnExecute.Enabled = _standby; });
-      }
-    }
-    private CancellationTokenSource cts = new CancellationTokenSource();
-    private GlobalHook kHook;
-
+    private List<(ESendKey exe, int x, int y)> _executions = new List<(ESendKey, int, int)>();
+    
     public Form1()
     {
       InitializeComponent();
+      _macro.LogSubmitted += MacroOnLogSubmitted;
+      _macro.BeginExecute += MacroOnBeginExecute;
+      _macro.MacroStopped += MacroOnMacroStopped;
+      _macro.PropertyChanged += MacroOnPropertyChanged;
     }
+    private void MacroOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+      if (e.PropertyName == nameof(_macro.isExecuting))
+      {
+        Invoke((MethodInvoker)delegate {
+          btnExecute.Text = _macro.isExecuting ? "중지 (F9)" : "실행 (F9)";
+        });
+      }
+    }
+    private void MacroOnMacroStopped(object sender, Macro.Macro.MacroStoppedEventArgs e)
+    {
+      _macro.isStandBy = true;
+    }
+    private void MacroOnBeginExecute(object sender, Macro.Macro.ExecuteEventArgs e)
+    {
+      dgvDataView.ClearSelection();
+      dgvDataView[_executions[e.index].x, _executions[e.index].y].Selected = true;
+    }
+
     private void Form1_Load(object sender, EventArgs e)
     {
-      standby = false;
-      var di = new DirectoryInfo(Environment.CurrentDirectory);
-      txbDataPath.Items.AddRange(di.GetFiles("*.xls").Concat(di.GetFiles("*.xlsx")).Select(x => x.FullName).ToArray<object>());
+      var di = new DirectoryInfo(Path.Combine(Environment.CurrentDirectory, "Data"));
+      var set = new HashSet<string>();
+      foreach (var se in di.GetFiles("*.xls").Concat(di.GetFiles("*.xlsx")).Select(x => x.Name))
+        set.Add(se);
+      txbDataPath.Items.AddRange(set.ToArray<object>());
 
-      kHook = new GlobalHook();
-      kHook.AddKeyDownHandler(KeyDownHandler);
-      kHook.Begin();
+      _globalHook = new GlobalHook();
+      _globalHook.AddKeyDownHandler(KeyDownHandler);
+      _globalHook.Begin();
 
-      if (txbDataPath.Items.Count > 0)
-        txbDataPath.Text = txbDataPath.Items[0].ToString();
+      Log($"Select a macro.", LogPriorities.Info);
     }
+    private void MacroOnLogSubmitted(object sender, Macro.Macro.LogSubmittedEventArgs e)
+    {
+      switch (e.priority)
+      {
+        case LogPriorities.PopUpInfo:
+        case LogPriorities.PopUpWarning:
+        {
+          MessageBox.Show(e.message, "ipmcr", MessageBoxButtons.OK, e.priority == LogPriorities.PopUpInfo ? MessageBoxIcon.Asterisk : MessageBoxIcon.Warning);
+          break;
+        }
+        default:
+        {
+          var color = Color.Black;
+          switch (e.priority)
+          {
+            case LogPriorities.Info:
+              color = Color.Blue;
+              break;
+            case LogPriorities.Warning:
+              color = Color.Orange;
+              break;
+            case LogPriorities.Error:
+              color = Color.DarkRed;
+              break;
+            case LogPriorities.Normal:
+              color = Color.Green;
+              break;
+          }
+          SetStatus(e.message, color);
+          break;
+        }
+      }
+    }
+
+    private void Log(string message, LogPriorities priority) => MacroOnLogSubmitted(this, new Macro.Macro.LogSubmittedEventArgs(message, priority));
+
     private void KeyDownHandler(object sender, KeyEventArgs e)
     {
       if (e.KeyCode == Keys.F9)
@@ -63,56 +110,96 @@ namespace InputMacro
       }
     }
 
-    private void LoadData(string path)
+    #region ########## Load Files ##########
+
+    private void CloseExcel()
     {
-      var t = new Task(() => {
+      try
+      {
+        excelApplication.Quit();
+        Log($"Closing Excel File...", LogPriorities.Info);
+        ReleaseObject(workbook);
+        ReleaseObject(worksheet);
+        ReleaseObject(excelApplication);
+      }
+      catch
+      {
+      }
+    }
+
+    private void txbDataPath_SelectedIndexChanged_1(object sender, EventArgs e)
+    {
+      try
+      {
+        CloseExcel();
+        isLoaded = false;
+        Log($"Clearing Data...", LogPriorities.Info);
+        TopMost = false;
+        nudSpeed.Value = 0;
+        dgvDataView.Columns.Clear();
+        _executions.Clear();
+        Log($"Open Excel Files...", LogPriorities.Info);
+        excelApplication = new Excel.Application
+        {
+          Visible = true
+        };
+        workbook = excelApplication.Workbooks.Open(Path.Combine(Environment.CurrentDirectory, "Data", txbDataPath.Text));
+        worksheet = (Excel.Worksheet)workbook.Worksheets["macro"];
+        workbook.AfterSave += WorkbookOnAfterSave;
+        workbook.BeforeClose += WorkbookOnBeforeClose;
+        Log($"Waiting to be saved...", LogPriorities.Info);
+      }
+      catch (Exception ex)
+      {
+        Log($"Error\n{ex.Message}", LogPriorities.PopUpWarning);
+      }
+    }
+
+    private void WorkbookOnBeforeClose(ref bool cancel)
+    {
+      cancel = false;
+      if (!isLoaded)
         Invoke((MethodInvoker)delegate {
-          _standby = false;
-          nudSpeed.Value = 0;
-          SetStatus("Preparing Data Load...", Color.Orange);
-          SetStatus("Clearing Sheets...", Color.Orange);
-          dgvDataView.Columns.Clear();
+          Log($"Excel has closed. Please select a macro again.", LogPriorities.Warning);
+        });
+    }
+
+    private void WorkbookOnAfterSave(bool success)
+    {
+      Invoke((MethodInvoker)delegate {
+        if (success)
+        {
+          LoadData();
+          TopMost = true;
+        }
+      });
+    }
+
+    private void LoadData()
+    {
+      Task.Factory.StartNew(() => {
+        Invoke((MethodInvoker)delegate {
+          Log($"Preparing Data Load...", LogPriorities.Info);
+          _macro.isStandBy = false;
           try
           {
-            SetStatus("Open Excel Files...", Color.Orange);
-            excelApplication = new Excel.Application
-            {
-              Visible = false
-            };
-            workbook = excelApplication.Workbooks.Open(path);
-            worksheet = (Excel.Worksheet)workbook.Worksheets[1];
-
-            // var range = worksheet.Range["C3 : F102"];
-            //
-            // for (int row = 1; row <= range.Rows.Count; row++)
-            // {
-            //   var rv = range.Cells[row, 1] as Excel.Range;
-            //   if (rv == null || rv.Value2 == null) continue;
-            //   dgvDataView.Rows.Add();
-            //   for (int column = 1; column <= range.Columns.Count; column++)
-            //   {
-            //     var value = range.Cells[row, column] as Excel.Range;
-            //     dgvDataView[column - 1, row - 1].Value = value.Value2;
-            //     SetStatus($"Load Cell: ({row}, {column}) {value.Value2}", Color.Orange);
-            //   }
-            // }
-            SetStatus($"Load Interval...", Color.Orange);
+            Log($"Load Interval...", LogPriorities.Info);
             var interval = worksheet.Cells[2, 2] as Excel.Range;
             if (interval?.Value != null && int.TryParse(interval.Value.ToString(), out var itv))
-              nudSpeed.Value = itv ;
-            
+              nudSpeed.Value = itv;
+
             var r = 0;
-            SetStatus($"Load Columns...", Color.Orange);
+            Log($"Load Columns...", LogPriorities.Info);
             while (true)
             {
               var columnHeader = worksheet.Cells[2, 3 + r] as Excel.Range;
               if (columnHeader?.Value == null) break;
               dgvDataView.Columns.Add($"a{r}", $"{columnHeader.Value2}");
-              SetStatus($"Load Column: {columnHeader.Value}", Color.Orange);
+              Log($"Load Column: {columnHeader.Value}", LogPriorities.Info);
               r++;
             }
 
-            SetStatus($"Load Rows...", Color.Orange);
+            Log($"Load Rows...", LogPriorities.Info);
             var c = 0;
             while (true)
             {
@@ -134,35 +221,41 @@ namespace InputMacro
               {
                 if (ls[i] == null) continue;
                 dgvDataView[i, c].Value = ls[i];
-                SetStatus($"Load Cell[{i}, {c}]: {ls[i]}", Color.Orange);
+                _executions.Add((new ESendKey(ls[i].ToString()), i, c));
+                Log($"Load Cell[{i}, {c}]: {ls[i]}", LogPriorities.Info);
               }
 
               c++;
             }
+            isLoaded = true;
+            workbook.Close(false);
           }
           catch (Exception exc)
           {
-            MessageBox.Show(exc.Message);
+            Log($"Data load error: {exc.Message}", LogPriorities.PopUpWarning);
           }
           finally
           {
-            workbook.Close(false);
-            excelApplication.Quit();
-            ReleaseObject(workbook);
-            ReleaseObject(worksheet);
-            ReleaseObject(excelApplication);
-            standby = true;
-            SetStatus("StandBy", Color.Green);
+            CloseExcel();
+            _macro.isStandBy = true;
           }
         });
       });
-      t.Start();
     }
 
+    #endregion
+
+
     private void SetStatus(string text) => SetStatus(text, Color.Black);
+
     private void SetStatus(string text, Color color)
     {
       Invoke((MethodInvoker)delegate {
+        if (rtbLog.Lines.Length >= 512)
+          rtbLog.Clear();
+        rtbLog.SelectionStart = rtbLog.Text.Length;
+        rtbLog.SelectionColor = color;
+        rtbLog.SelectedText = text + "\r\n";
         lbStatus.ForeColor = color;
         lbStatus.Text = text;
       });
@@ -189,79 +282,40 @@ namespace InputMacro
       }
     }
 
-    private void Execute()
-    {
-      started = true;
-      SetStatus("Starting Macro", Color.Blue);
-      Task.Factory.StartNew(Exe, cts.Token);
-    }
-
-    private async void Exe()
-    {
-      try
-      {
-        for (var row = 0; row < dgvDataView.Rows.Count; row++)
-        {
-          for (var column = 0; column < dgvDataView.Columns.Count; column++)
-          {
-            var value = dgvDataView[column, row].Value;
-            if (value == null || string.IsNullOrEmpty(value.ToString())) continue;
-            SetStatus($"Send: {value}", Color.Blue);
-            dgvDataView.ClearSelection();
-            dgvDataView[column, row].Selected = true;
-            SendKeys.SendWait(value.ToString());
-            if(nudSpeed.Value > 0)
-              await Task.Delay((int)nudSpeed.Value);
-            cts.Token.ThrowIfCancellationRequested();
-          }
-        }
-        started = false;
-        SetStatus("Standby", Color.Green);
-      }
-      catch(OperationCanceledException exc)
-      {
-        started = false;
-        SetStatus("StandBy", Color.Green);
-      }
-    }
-
     private void Toggle()
     {
-      if (!standby) return;
-      if (started)
+      if (_macro.isExecuting)
       {
-        SetStatus("Request Cancel...", Color.Green);
-        cts.Cancel();
+        _macro.Cancel();
       }
       else
       {
-        cts = new CancellationTokenSource();
-        Execute();
+        _macro.Start(_executions.Select(x => x.exe).ToArray<IExecutable>(), (int)nudSpeed.Value);
       }
     }
 
-    private void txbDataPath_SelectedIndexChanged_1(object sender, EventArgs e)
-    {
-      LoadData(txbDataPath.Text);
-    }
 
     private void Form1_FormClosing(object sender, FormClosingEventArgs e)
     {
       try
       {
+        workbook.AfterSave -= WorkbookOnAfterSave;
+        workbook.BeforeClose -= WorkbookOnBeforeClose;
         workbook.Close(false);
-        excelApplication.Quit();
-        ReleaseObject(workbook);
-        ReleaseObject(worksheet);
-        ReleaseObject(excelApplication);
+        CloseExcel();
       }
       catch
       {
       }
     }
+
     private void btnExecute_Click(object sender, EventArgs e)
     {
       Toggle();
+    }
+    private void nudSpeed_ValueChanged(object sender, EventArgs e)
+    {
+      _macro.interval = (int)nudSpeed.Value;
     }
   }
 }
