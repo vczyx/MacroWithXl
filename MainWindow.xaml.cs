@@ -125,24 +125,12 @@ namespace InputMacro3
 
     private void SelectFile()
     {
-      if
-      (
-        ListViewExplorer.SelectedItem is File data &&
-        (currentMacroData != Path.Combine(Environment.CurrentDirectory, "Data", data.name) ||
-         string.IsNullOrEmpty(currentMacroData))
-      )
+      if (ListViewExplorer.SelectedItem is File data && currentMacroData != Path.Combine(Environment.CurrentDirectory, "Data", data.name))
       {
-        if (ListViewExplorer.SelectedItem is File)
-        {
-          OpenMacro();
-        }
-        else
-          MessageBox.Show("매크로를 선택하세요.", "InputMacro", MessageBoxButton.OK, MessageBoxImage.Warning);
+        if (string.IsNullOrEmpty(currentMacroData)) OpenMacro();
+        else MovePage(1);
       }
-      else
-      {
-        MovePage(1);
-      }
+      else MessageBox.Show("매크로를 선택하세요.", "InputMacro", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
     private void Pg1CloseButtonOnClick(object sender, RoutedEventArgs e) => Application.Current.Shutdown();
     private void OpenMacro()
