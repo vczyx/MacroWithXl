@@ -1,0 +1,202 @@
+﻿<Window x:Class="InputMacro3.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:InputMacro3"
+        xmlns:gif="https://github.com/XamlAnimatedGif/XamlAnimatedGif"
+        xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+        mc:Ignorable="d"
+        Title="InputMacro 3.0" Height="300" Width="350"
+        SizeToContent="WidthAndHeight"
+        Loaded="MainWindow_OnLoaded"
+        ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen"
+        Background="#f5f5f5"
+        Closing="MainWindow_OnClosing"
+        Topmost="True">
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#4c4c4c" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                            <Grid>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Background" Value="#cccccc" />
+            <Setter Property="Foreground" Value="#4c4c4c" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <EventTrigger RoutedEvent="MouseEnter">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <local:BrushAnimation
+                                Storyboard.TargetProperty="Background"
+                                To="#adadad"
+                                Duration="0:0:0.100" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="MouseLeave">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <local:BrushAnimation
+                                Storyboard.TargetProperty="Background"
+                                To="#cccccc"
+                                Duration="0:0:0.100" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+
+    <Grid x:Name="MainGrid" Height="300" Width="350">
+        <StackPanel x:Name="MoveablePanel" Orientation="Horizontal" Margin="0,0,0,0">
+            <Grid
+                Width="{Binding Path=Width, ElementName=MainGrid}"
+                Height="{Binding Path=Height, ElementName=MainGrid}">
+                <Grid Margin="10">
+                    <StackPanel>
+                        <TextBlock FontSize="24" FontWeight="Bold" Margin="0,5,0,0">Step 1</TextBlock>
+                        <TextBlock>실행 할 매크로를 선택하십시오.</TextBlock>
+                        <ListView x:Name="ListViewExplorer" SelectionMode="Single"
+                                  MouseDoubleClick="ListViewExplorer_OnMouseDoubleClick"
+                                  KeyDown="ListViewExplorer_OnKeyDown"
+                                  Height="190"
+                                  Margin="0,5">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="{Binding icon}" Width="16" Height="16" />
+                                        <TextBlock Text="{Binding name}" Margin="5,0,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                    </StackPanel>
+                    <StackPanel Height="25" VerticalAlignment="Bottom" Orientation="Horizontal"
+                                FlowDirection="RightToLeft">
+                        <Button Width="80" Content="다음" Click="Pg1NextButtonOnClick" />
+                        <Button Width="80" Content="종료" Click="Pg1CloseButtonOnClick" Margin="5,0" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+            <StackPanel Orientation="Vertical">
+                <Grid
+                    Width="{Binding Path=Width, ElementName=MainGrid}"
+                    Height="{Binding Path=Height, ElementName=MainGrid}">
+                    <Grid Margin="10">
+                        <StackPanel>
+                            <TextBlock FontSize="24" FontWeight="Bold" Margin="0,5,0,0">Step 2</TextBlock>
+                            <TextBlock>곧 파일이 열립니다.</TextBlock>
+                            <TextBlock>파일을 저장하여 매크로를 불러오세요.</TextBlock>
+                            <StackPanel Orientation="Horizontal" Margin="0,10">
+                                <TextBlock x:Name="TbWait">파일이 저장되기를 기다리는 중</TextBlock>
+                                <Image gif:AnimationBehavior.SourceUri="Assets/loading.gif" Width="16" Height="16"
+                                       Margin="5,0,5,0">
+                                </Image>
+                            </StackPanel>
+
+                        </StackPanel>
+                        <StackPanel Height="25" VerticalAlignment="Bottom" Orientation="Horizontal"
+                                    FlowDirection="RightToLeft">
+                            <Button x:Name="btnWait" Width="80" Content="다음" Click="Pg2NextButtonOnClick" />
+                            <Button Width="80" Content="이전" Click="Pg2PreviousButtonOnClick" Margin="5,0" />
+                        </StackPanel>
+                    </Grid>
+
+                </Grid>
+                <Grid Height="150">
+                    <Grid Margin="10">
+                        <StackPanel>
+                            <TextBlock FontSize="24" FontWeight="Bold" Margin="0,5,0,0">Error</TextBlock>
+                            <TextBlock>매크로 파일이 종료되었습니다. 매크로 파일을 다시 선택하세요.</TextBlock>
+                        </StackPanel>
+                        <StackPanel Height="25" VerticalAlignment="Bottom" Orientation="Horizontal"
+                                    FlowDirection="RightToLeft">
+                            <Button Width="80" Content="확인" Click="Pg2ConfirmButtonOnClick" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </StackPanel>
+            <Grid
+                Width="{Binding Path=Width, ElementName=MainGrid}"
+                Height="{Binding Path=Height, ElementName=MainGrid}">
+                <Grid Margin="10">
+                    <StackPanel>
+                        <TextBlock FontSize="24" FontWeight="Bold" Margin="0,5,0,0">Step 3</TextBlock>
+                        <TextBlock Text="매크로를 불러오는 중입니다." />
+                        <TextBlock Margin="0,10,0,0"
+                                   Text="{Binding Path=currentMacroData, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}, Mode=OneWay}" />
+
+                        <Grid>
+                            <ProgressBar x:Name="PbLoading" Height="16"
+                                         Foreground="#4c4c4c">
+                            </ProgressBar>
+                            <TextBlock x:Name="TbLoading" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="#cccccc" />
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+
+            </Grid>
+            <Grid
+                Width="{Binding Path=Width, ElementName=MainGrid}"
+                Height="{Binding Path=Height, ElementName=MainGrid}">
+                <Grid Margin="10">
+                    <StackPanel>
+                        <TextBlock FontSize="24" FontWeight="Bold" Margin="0,5,0,0">Step 4</TextBlock>
+                        <WrapPanel>
+                            <TextBlock MouseDown="Pg4ViewMacroButtonOnClick">매크로</TextBlock>
+                            <TextBlock>를 실행할 수 있습니다.</TextBlock>
+                        </WrapPanel>
+                        <Grid>
+                            <ProgressBar x:Name="PbProgress" Height="16"
+                                         Foreground="#4c4c4c">
+                            </ProgressBar>
+                            <TextBlock x:Name="TbProgress" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="#cccccc" />
+                        </Grid>
+                        <Grid Margin="0,10,0,0">
+                                <Image x:Name="ImgView" ></Image>
+                        </Grid>
+                    </StackPanel>
+                    <StackPanel Height="25" VerticalAlignment="Bottom" Orientation="Horizontal"
+                                FlowDirection="RightToLeft">
+                        <Button x:Name="btnExecute" IsEnabled="False" Width="80" Content="(실행 (F9" Click="Pg4ExecuteButtonOnClick" />
+                        <Button Width="80" Content="처음으로" Click="Pg4GoHomeButtonOnClick" Margin="5,0" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+            <Grid
+                Width="{Binding Path=Width, ElementName=MainGrid}"
+                Height="{Binding Path=Height, ElementName=MainGrid}">
+                <Grid Margin="10">
+                    <StackPanel>
+                        <TextBlock FontSize="24" FontWeight="Bold" Margin="0,5,0,0">Macro Details</TextBlock>
+                        <WindowsFormsHost Height="410">
+                            <wf:DataGridView x:Name="dgvDataView"></wf:DataGridView>
+                        </WindowsFormsHost>
+
+                    </StackPanel>
+                    <StackPanel Height="25" VerticalAlignment="Bottom" Orientation="Horizontal"
+                                FlowDirection="RightToLeft">
+                        <Button Width="80" Content="이전" Click="Pg5PreviousButtonOnClick" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </StackPanel>
+    </Grid>
+</Window>

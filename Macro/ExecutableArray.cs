@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using InputMacro.Macro;
 
-namespace InputMacro.Macro
+namespace InputMacro3.Macro
 {
   [Obsolete("Macro 클래스에서 지원되지 않습니다.",true)]
   public class ExecutableArray<T> : IExecutable where T : IExecutable

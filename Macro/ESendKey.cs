@@ -1,6 +1,7 @@
 ﻿using System.Windows.Forms;
+using InputMacro.Macro;
 
-namespace InputMacro.Macro
+namespace InputMacro3.Macro
 {
   public class ESendKey : IExecutable
   {
