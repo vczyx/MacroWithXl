@@ -4,6 +4,15 @@
              xmlns:local="clr-namespace:InputMacro3"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <FontFamily x:Key="SgnB">application:,,,/Fonts/#AppleSDGothicNeoB00</FontFamily>
+        <FontFamily x:Key="SgnL">application:,,,/Fonts/#AppleSDGothicNeoL00</FontFamily>
+        <FontFamily x:Key="SgnR">application:,,,/Fonts/#AppleSDGothicNeoM00</FontFamily>
+        <FontFamily x:Key="NsL">application:,,,/Fonts/#나눔스퀘어 Light</FontFamily>
+        <FontFamily x:Key="NsB">application:,,,/Fonts/#나눔스퀘어 Bold</FontFamily>
+        <FontFamily x:Key="NsR">application:,,,/Fonts/#나눔스퀘어</FontFamily>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#4c4c4c" />
+            <Setter Property="FontFamily" Value="{StaticResource SgnR}"/>
+        </Style>
     </Application.Resources>
 </Application>

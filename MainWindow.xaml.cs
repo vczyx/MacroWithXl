@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using InputMacro.Macro;
 using InputMacro3.EasingFunction;
 using InputMacro3.Macro;
@@ -35,9 +36,14 @@ namespace InputMacro3
 
     public int loadProgressMax { get; set; } = 0;
 
-    public int[] heights = new int[]
+    public static readonly int[] heights =
     {
-      300, 150, 115, 500, 500
+      300, 150, 115, 120, 500
+    };
+
+    public int[] configHeights =
+    {
+      0, 0, 0, 0, 0
     };
 
     public ImageSource helpImage { get; set; }
@@ -74,7 +80,7 @@ namespace InputMacro3
 
       var heightAnim = new DoubleAnimation(
         MainGrid.ActualHeight,
-        heights[page],
+        Math.Max(heights[page], configHeights[page]),
         TimeSpan.FromMilliseconds(AnimationDuration)
       )
       {
@@ -119,11 +125,15 @@ namespace InputMacro3
 
     private void SelectFile()
     {
-      if (string.IsNullOrEmpty(currentMacroData))
+      if
+      (
+        ListViewExplorer.SelectedItem is File data &&
+        (currentMacroData != Path.Combine(Environment.CurrentDirectory, "Data", data.name) ||
+         string.IsNullOrEmpty(currentMacroData))
+      )
       {
         if (ListViewExplorer.SelectedItem is File)
         {
-          _isLoaded = true;
           OpenMacro();
         }
         else
@@ -139,6 +149,14 @@ namespace InputMacro3
     {
       if (!(ListViewExplorer.SelectedItem is File data)) return;
       currentMacroData = Path.Combine(Environment.CurrentDirectory, "Data", data.name);
+      Topmost = true;
+      _isLoaded = true;
+      configHeights[1] = 0;
+      configHeights[3] = 0;
+      WindowUtilities.Clear();
+      UpdateLayout();
+      ImgView2.Source = null;
+      ImgView4.Source = null;
       MovePage(1);
       Load();
     }
@@ -270,9 +288,18 @@ namespace InputMacro3
           _worksheet = (Excel.Worksheet)_workbook.Worksheets["macro"];
           _workbook.AfterSave += WorkbookOnAfterSave;
           _workbook.BeforeClose += WorkbookOnBeforeClose;
+          var configSheet = _workbook.Sheets["config"] as Excel.Worksheet;
+          var configRange = configSheet.Range["E3:F4"];
+          for (var i = 1; i <= configRange.Rows.Count; i++)
+            _config.Apply((configRange[i, 1] as Excel.Range)?.Value.ToString(), (configRange[i, 2] as Excel.Range)?.Value);
+
+          configHeights[1] = _config.heightStep2;
           Dispatcher.Invoke(() => {
             Topmost = false;
             btnWait.IsEnabled = true;
+            if (_config.heightStep2 > 0)
+              ImgView2.Source = GetBitmapFromExcelRange("view", _config.viewRangeStep2);
+            MovePage(1);
             TbWait.Text = "파일이 저장되기를 기다리는 중";
           });
           Console.WriteLine("Waiting to be saved...");
@@ -313,106 +340,111 @@ namespace InputMacro3
         loadProgressValue = 0;
         _macro.isStandBy = false;
 
-        // try
-        // {
-        loadProgressMax = 3;
-        loadProgressValue = 0;
-        Dispatcher.Invoke(() => {
-          PbLoading.Maximum = loadProgressMax;
-          PbLoading.Value = loadProgressValue;
-          TbLoading.Text = $"{Math.Floor((double)loadProgressValue / loadProgressMax * 100)}%";
-        });
-        Console.WriteLine("Load Config...");
-        var configSheet = _workbook.Sheets["config"] as Excel.Worksheet;
-        var configRange = configSheet.Range["B3:C5"];
-        for (var i = 1; i <= configRange.Rows.Count; i++)
-          _config.Apply((configRange[i, 1] as Excel.Range)?.Value.ToString(), (configRange[i, 2] as Excel.Range)?.Value);
-        loadProgressMax += _config.maxCount;
-        loadProgressValue++;
-
-        Console.WriteLine("Load View...");
-
-        var viewSheet = _workbook.Sheets["view"] as Excel.Worksheet;
-        var q = viewSheet?.Range[$"A1:{_config.viewRange}"];
-        var isCopyObj = q?.CopyPicture(Excel.XlPictureAppearance.xlScreen, Excel.XlCopyPictureFormat.xlBitmap);
-        var isCopy = false;
-        if (isCopyObj is bool)
-          isCopy = bool.Parse(isCopyObj.ToString());
-        if (isCopy)
+        try
         {
-          Dispatcher.Invoke(() => {
-            // var img = Clipboard.GetImage();
-            var img = (Bitmap)System.Windows.Forms.Clipboard.GetImage();
-            ImgView.Source = WindowUtilities.BitmapToBitmapSourceSafe(img);
-          });
-        }
-        loadProgressValue++;
-
-        var r = 0;
-        Console.WriteLine("Load Columns...");
-        while (true)
-        {
-          var columnHeader = _worksheet.Cells[2, 3 + r] as Excel.Range;
-          if (columnHeader?.Value == null) break;
-
-          Dispatcher.Invoke(() => { dgvDataView.Columns.Add($"a{r}", $"{columnHeader.Value2}"); });
-
-          Console.WriteLine("Load Column: {0}", columnHeader.Value);
-          r++;
-        }
-
-        loadProgressValue++;
-        Console.WriteLine("Load Rows...");
-        var c = 0;
-        while (true)
-        {
-          var any = false;
-          var ls = new List<object>();
-          for (int i = 0; i < r; i++)
-          {
-            var x = _worksheet.Cells[3 + c, 3 + i] as Excel.Range;
-            ls.Add(x?.Value);
-            if (x?.Value != null && x.Value.ToString() != "")
-              any = true;
-
-            // break;
-          }
-          if (!any) break;
-          Dispatcher.Invoke(() => { dgvDataView.Rows.Add(); });
-
-          for (var i = 0; i < ls.Count; i++)
-          {
-            if (ls[i] == null) continue;
-            Dispatcher.Invoke(() => { dgvDataView[i, c].Value = ls[i]; });
-            _executions.Add((new ESendKey(ls[i].ToString()), i, c));
-            Console.WriteLine("Load Cell[{0}, {1}]: {2}", i, c, ls[i]);
-          }
-
-          c++;
-          loadProgressValue++;
+          loadProgressMax = 3;
+          loadProgressValue = 0;
           Dispatcher.Invoke(() => {
             PbLoading.Maximum = loadProgressMax;
             PbLoading.Value = loadProgressValue;
             TbLoading.Text = $"{Math.Floor((double)loadProgressValue / loadProgressMax * 100)}%";
           });
+          Console.WriteLine("Load Config...");
+          var configSheet = _workbook.Sheets["config"] as Excel.Worksheet;
+          var configRange = configSheet.Range["B3:C6"];
+          for (var i = 1; i <= configRange.Rows.Count; i++)
+            _config.Apply((configRange[i, 1] as Excel.Range)?.Value.ToString(), (configRange[i, 2] as Excel.Range)?.Value);
+          loadProgressMax += _config.maxCount;
+
+          configHeights[3] = _config.heightStep4;
+          loadProgressValue++;
+
+          Console.WriteLine("Load View...");
+
+          if (_config.heightStep4 > 0)
+            Dispatcher.Invoke(() => { ImgView4.Source = GetBitmapFromExcelRange("view", _config.viewRangeStep4); });
+
+          loadProgressValue++;
+
+          var r = 0;
+          Console.WriteLine("Load Columns...");
+          while (true)
+          {
+            var columnHeader = _worksheet.Cells[2, 3 + r] as Excel.Range;
+            if (columnHeader?.Value == null) break;
+
+            Dispatcher.Invoke(() => { dgvDataView.Columns.Add($"a{r}", $"{columnHeader.Value2}"); });
+
+            Console.WriteLine("Load Column: {0}", columnHeader.Value);
+            r++;
+          }
+
+          loadProgressValue++;
+          Console.WriteLine("Load Rows...");
+          var c = 0;
+          while (true)
+          {
+            var any = false;
+            var ls = new List<object>();
+            for (int i = 0; i < r; i++)
+            {
+              var x = _worksheet.Cells[3 + c, 3 + i] as Excel.Range;
+              ls.Add(x?.Value);
+              if (x?.Value != null && x.Value.ToString() != "")
+                any = true;
+
+              // break;
+            }
+            if (!any) break;
+            Dispatcher.Invoke(() => { dgvDataView.Rows.Add(); });
+
+            for (var i = 0; i < ls.Count; i++)
+            {
+              if (ls[i] == null) continue;
+              Dispatcher.Invoke(() => { dgvDataView[i, c].Value = ls[i]; });
+              _executions.Add((new ESendKey(ls[i].ToString()), i, c));
+              Console.WriteLine("Load Cell[{0}, {1}]: {2}", i, c, ls[i]);
+            }
+
+            c++;
+            loadProgressValue++;
+            Dispatcher.Invoke(() => {
+              PbLoading.Maximum = loadProgressMax;
+              PbLoading.Value = loadProgressValue;
+              TbLoading.Text = $"{Math.Floor((double)loadProgressValue / loadProgressMax * 100)}%";
+            });
+          }
+          _isLoaded = true;
+          _workbook.Close(false);
+          Dispatcher.Invoke(() => { MovePage(3); });
         }
-        _isLoaded = true;
-        _workbook.Close(false);
-        Dispatcher.Invoke(() => { MovePage(3); });
-
-        // }
-        // catch (Exception exc)
-        // {
-        //   Console.WriteLine("Data load error: {0}", exc.Message);
-        // }
-        // finally
-        // {
-        CloseExcel();
-        _macro.isStandBy = true;
-
-        // }
+        catch (Exception exc)
+        {
+          Console.WriteLine("Data load error: {0}", exc.Message);
+        }
+        finally
+        {
+          CloseExcel();
+          _macro.isStandBy = true;
+        }
       };
       bw.RunWorkerAsync();
+    }
+
+    private BitmapSource GetBitmapFromExcelRange(string sheetName, string range)
+    {
+      var sheet = _workbook.Sheets[sheetName] as Excel.Worksheet;
+      var r = sheet?.Range[range];
+      var isCopyObj = r?.CopyPicture(Excel.XlPictureAppearance.xlScreen, Excel.XlCopyPictureFormat.xlBitmap);
+      var isCopy = false;
+      if (isCopyObj is bool)
+        isCopy = bool.Parse(isCopyObj.ToString());
+      if (isCopy)
+      {
+        var img = (Bitmap)System.Windows.Forms.Clipboard.GetImage();
+        return WindowUtilities.BitmapToBitmapSourceSafe(img);
+      }
+      else return null;
     }
 
     private void Toggle()

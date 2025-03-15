@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Media;
@@ -9,6 +10,17 @@ namespace InputMacro3
 {
   public static class WindowUtilities
   {
+    public static List<BitmapSource> images = new List<BitmapSource>();
+
+    public static void Clear()
+    {
+      for (var i = 0; i < images.Count; i++)
+      {
+        images[i] = null;
+      }
+      images.Clear();
+    }
+    
     public static BitmapSource BitmapToBitmapSource(Bitmap bmp)
     {
       var bitmapData = bmp.LockBits(
@@ -23,6 +35,7 @@ namespace InputMacro3
 
       bmp.UnlockBits(bitmapData);
 
+      images.Add(bitmapSource);
       return bitmapSource;
     }
     public static System.Windows.Media.PixelFormat ConvertPixelFormat(System.Drawing.Imaging.PixelFormat systemDrawingFormat)
@@ -85,7 +98,7 @@ namespace InputMacro3
         bitmap.StreamSource = ms;
         bitmap.EndInit();
         bitmap.Freeze(); // Make the BitmapImage cross-thread accessible
-
+        images.Add(bitmap);
         return bitmap;
       }
     }
