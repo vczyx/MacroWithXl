@@ -2,17 +2,105 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:InputMacro3"
+             xmlns:utils="clr-namespace:InputMacro3.Utils"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <FontFamily x:Key="SgnB">application:,,,/Fonts/#AppleSDGothicNeoB00</FontFamily>
         <FontFamily x:Key="SgnL">application:,,,/Fonts/#AppleSDGothicNeoL00</FontFamily>
-        <FontFamily x:Key="SgnR">application:,,,/Fonts/#AppleSDGothicNeoM00</FontFamily>
-        <FontFamily x:Key="NsL">application:,,,/Fonts/#나눔스퀘어 Light</FontFamily>
-        <FontFamily x:Key="NsB">application:,,,/Fonts/#나눔스퀘어 Bold</FontFamily>
-        <FontFamily x:Key="NsR">application:,,,/Fonts/#나눔스퀘어</FontFamily>
+        <FontFamily x:Key="SgnM">application:,,,/Fonts/#AppleSDGothicNeoM00</FontFamily>
+        <FontFamily x:Key="SgnR">application:,,,/Fonts/#AppleSDGothicNeoR00</FontFamily>
+        <FontFamily x:Key="SgnSb">application:,,,/Fonts/#AppleSDGothicNeoSB00</FontFamily>
+        <FontFamily x:Key="SgnEb">application:,,,/Fonts/#AppleSDGothicNeoEB00</FontFamily>
+
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="#4c4c4c" />
-            <Setter Property="FontFamily" Value="{StaticResource SgnR}"/>
+            <Setter Property="FontFamily" Value="{StaticResource SgnR}" />
+            <Style.Triggers>
+                <Trigger Property="FontWeight" Value="Bold">
+                    <Setter Property="FontFamily" Value="{StaticResource SgnB}" />
+                </Trigger>
+                <Trigger Property="FontWeight" Value="Regular">
+                    <Setter Property="FontFamily" Value="{StaticResource SgnR}" />
+                </Trigger>
+                <Trigger Property="FontWeight" Value="Normal">
+                    <Setter Property="FontFamily" Value="{StaticResource SgnR}" />
+                </Trigger>
+                <Trigger Property="FontWeight" Value="SemiBold">
+                    <Setter Property="FontFamily" Value="{StaticResource SgnSb}" />
+                </Trigger>
+                <Trigger Property="FontWeight" Value="SemiBold">
+                    <Setter Property="FontFamily" Value="{StaticResource SgnSb}" />
+                </Trigger>
+                <Trigger Property="FontWeight" Value="ExtraBold">
+                    <Setter Property="FontFamily" Value="{StaticResource SgnEb}" />
+                </Trigger>
+                <Trigger Property="FontWeight" Value="Medium">
+                    <Setter Property="FontFamily" Value="{StaticResource SgnM}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="FontFamily" Value="{StaticResource SgnR}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                            <Grid>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Background" Value="#cccccc" />
+            <Setter Property="Foreground" Value="#4c4c4c" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <EventTrigger RoutedEvent="PreviewKeyDown">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <utils:BrushAnimation
+                                Storyboard.TargetProperty="Background"
+                                To="#aaaaaa"
+                                Duration="0:0:0.100" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="PreviewMouseUp">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <utils:BrushAnimation
+                                Storyboard.TargetProperty="Background"
+                                To="#cccccc"
+                                Duration="0:0:0.100" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                
+                <EventTrigger RoutedEvent="MouseEnter">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <utils:BrushAnimation
+                                Storyboard.TargetProperty="Background"
+                                To="#adadad"
+                                Duration="0:0:0.100" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                
+                <EventTrigger RoutedEvent="MouseLeave">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <utils:BrushAnimation
+                                Storyboard.TargetProperty="Background"
+                                To="#cccccc"
+                                Duration="0:0:0.100" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Style.Triggers>
         </Style>
     </Application.Resources>
 </Application>

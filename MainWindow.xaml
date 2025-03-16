@@ -16,53 +16,7 @@
         Closing="MainWindow_OnClosing"
         Topmost="True"
         Icon="favicon.ico">
-    <Window.Resources>
-
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#4c4c4c" />
-            <Setter Property="FontFamily" Value="{StaticResource SgnB}" />
-        </Style>
-        <Style TargetType="Button">
-            <Setter Property="FontFamily" Value="{StaticResource SgnR}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
-                            <Grid>
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Grid>
-                        </Border>
-
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Setter Property="Background" Value="#cccccc" />
-            <Setter Property="Foreground" Value="#4c4c4c" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Style.Triggers>
-                <EventTrigger RoutedEvent="MouseEnter">
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <local:BrushAnimation
-                                Storyboard.TargetProperty="Background"
-                                To="#adadad"
-                                Duration="0:0:0.100" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-                <EventTrigger RoutedEvent="MouseLeave">
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <local:BrushAnimation
-                                Storyboard.TargetProperty="Background"
-                                To="#cccccc"
-                                Duration="0:0:0.100" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Style.Triggers>
-        </Style>
-    </Window.Resources>
+    
 
 
     <Grid x:Name="MainGrid" Height="300" Width="350">
@@ -72,9 +26,9 @@
                 Height="{Binding Path=Height, ElementName=MainGrid}">
                 <Grid Margin="10">
                     <StackPanel>
-                        <TextBlock FontSize="24" FontFamily="{StaticResource SgnB}" Margin="0,5,0,0">Step 1</TextBlock>
+                        <TextBlock FontSize="24" FontWeight="ExtraBold" Margin="0,5,0,0">Step 1</TextBlock>
                         <TextBlock>실행 할 매크로를 선택하십시오.</TextBlock>
-                        <ListView x:Name="ListViewExplorer" SelectionMode="Single"
+                        <ListView x:Name="LvPg1Explorer" SelectionMode="Single"
                                   MouseDoubleClick="ListViewExplorer_OnMouseDoubleClick"
                                   KeyDown="ListViewExplorer_OnKeyDown"
                                   Height="190"
@@ -103,32 +57,34 @@
                     Height="{Binding Path=Height, ElementName=MainGrid}">
                     <Grid Margin="10">
                         <StackPanel>
-                            <TextBlock FontSize="24" FontFamily="{StaticResource SgnB}" Margin="0,5,0,0">Step 2</TextBlock>
+                            <TextBlock FontSize="24" FontWeight="ExtraBold" Margin="0,5,0,0">Step 2</TextBlock>
                             <TextBlock>곧 파일이 열립니다.</TextBlock>
                             <TextBlock>파일을 저장하여 매크로를 불러오세요.</TextBlock>
-                            <StackPanel Orientation="Horizontal" Margin="0,10">
-                                <TextBlock x:Name="TbWait">파일이 저장되기를 기다리는 중</TextBlock>
+                            <StackPanel Orientation="Horizontal" Margin="0,5">
+                                <TextBlock x:Name="TbPg2WaitMessage">파일이 저장되기를 기다리는 중</TextBlock>
                                 <Image gif:AnimationBehavior.SourceUri="Assets/loading.gif" Width="16" Height="16"
                                        Margin="5,0,5,0">
                                 </Image>
                             </StackPanel>
+                            <TextBlock x:Name="TbPg2Desc" Margin="0,10,0,0"></TextBlock>
                             <Grid Margin="0,10,0,0">
-                                <Image x:Name="ImgView2"></Image>
+                                <Image x:Name="ImgPg2View"></Image>
                             </Grid>
                         </StackPanel>
                         <StackPanel Height="25" VerticalAlignment="Bottom" Orientation="Horizontal"
                                     FlowDirection="RightToLeft">
-                            <Button x:Name="btnWait" Width="80" Content="다음" Click="Pg2NextButtonOnClick" />
+                            <Button x:Name="BtnPg2Next" Width="80" Content="다음" Click="Pg2NextButtonOnClick" />
                             <Button Width="80" Content="이전" Click="Pg2PreviousButtonOnClick" Margin="5,0" />
                         </StackPanel>
                     </Grid>
 
                 </Grid>
-                <Grid Height="150">
+                <Grid Width="{Binding Path=Width, ElementName=MainGrid}"
+                      Height="{Binding Path=Height, ElementName=MainGrid}">
                     <Grid Margin="10">
                         <StackPanel>
-                            <TextBlock FontSize="24" FontFamily="{StaticResource SgnB}" Margin="0,5,0,0">Error</TextBlock>
-                            <TextBlock>매크로 파일이 종료되었습니다. 매크로 파일을 다시 선택하세요.</TextBlock>
+                            <TextBlock FontSize="24" FontWeight="ExtraBold" Margin="0,5,0,0">Error</TextBlock>
+                            <TextBlock x:Name="TbPg2Message"></TextBlock>
                         </StackPanel>
                         <StackPanel Height="25" VerticalAlignment="Bottom" Orientation="Horizontal"
                                     FlowDirection="RightToLeft">
@@ -142,16 +98,15 @@
                 Height="{Binding Path=Height, ElementName=MainGrid}">
                 <Grid Margin="10">
                     <StackPanel>
-                        <TextBlock FontSize="24" FontFamily="{StaticResource SgnB}" Margin="0,5,0,0">Step 3</TextBlock>
+                        <TextBlock FontSize="24" FontWeight="ExtraBold" Margin="0,5,0,0">Step 3</TextBlock>
                         <TextBlock Text="매크로를 불러오는 중입니다." />
-                        <TextBlock Margin="0,10,0,0"
-                                   Text="{Binding Path=currentMacroData, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}, Mode=OneWay}" />
+                        <TextBlock x:Name="TbPg3Status" Margin="0,10,0,0"/>
 
                         <Grid>
-                            <ProgressBar x:Name="PbLoading" Height="16"
+                            <ProgressBar x:Name="PbPg3Loading" Height="16"
                                          Foreground="#4c4c4c">
                             </ProgressBar>
-                            <TextBlock x:Name="TbLoading" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            <TextBlock x:Name="TbPg3Loading" HorizontalAlignment="Center" VerticalAlignment="Center"
                                        Foreground="#cccccc" />
                         </Grid>
                     </StackPanel>
@@ -163,25 +118,27 @@
                 Height="{Binding Path=Height, ElementName=MainGrid}">
                 <Grid Margin="10">
                     <StackPanel>
-                        <TextBlock FontSize="24" FontFamily="{StaticResource SgnB}" Margin="0,5,0,0">Step 4</TextBlock>
+                        <TextBlock x:Name="TbPg4Title" FontSize="24" FontWeight="ExtraBold" Margin="0,5,0,0">Step 4</TextBlock>
                         <WrapPanel>
+                            <TextBlock>F9를 눌러 </TextBlock>
                             <TextBlock MouseDown="Pg4ViewMacroButtonOnClick">매크로</TextBlock>
-                            <TextBlock>를 실행할 수 있습니다.</TextBlock>
+                            <TextBlock>를 실행하세요.</TextBlock>
                         </WrapPanel>
                         <Grid>
-                            <ProgressBar x:Name="PbProgress" Height="16"
+                            <ProgressBar x:Name="PbPg4Progress" Height="16"
                                          Foreground="#4c4c4c">
                             </ProgressBar>
-                            <TextBlock x:Name="TbProgress" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            <TextBlock x:Name="TbPg4Progress" HorizontalAlignment="Center" VerticalAlignment="Center"
                                        Foreground="#cccccc" />
                         </Grid>
                         <Grid Margin="0,10,0,0">
-                            <Image x:Name="ImgView4"></Image>
+                            <TextBlock x:Name="TbPg4Desc"></TextBlock>
+                            <Image x:Name="ImgPg4View"></Image>
                         </Grid>
                     </StackPanel>
                     <StackPanel Height="25" VerticalAlignment="Bottom" Orientation="Horizontal"
                                 FlowDirection="RightToLeft">
-                        <Button x:Name="btnExecute" IsEnabled="False" Width="80" Content="(실행 (F9"
+                        <Button x:Name="BtnPg4Execute" IsEnabled="False" Width="80" Content="(실행 (F9"
                                 Click="Pg4ExecuteButtonOnClick" />
                         <Button Width="80" Content="처음으로" Click="Pg4GoHomeButtonOnClick" Margin="5,0" />
                     </StackPanel>
@@ -192,9 +149,9 @@
                 Height="{Binding Path=Height, ElementName=MainGrid}">
                 <Grid Margin="10">
                     <StackPanel>
-                        <TextBlock FontSize="24" FontFamily="{StaticResource SgnB}" Margin="0,5,0,0">Macro Details</TextBlock>
+                        <TextBlock FontSize="24" FontWeight="ExtraBold" Margin="0,5,0,0">Macro Details</TextBlock>
                         <WindowsFormsHost Height="410">
-                            <wf:DataGridView x:Name="dgvDataView" RowHeadersVisible="False"
+                            <wf:DataGridView x:Name="DgvPg5DataView" RowHeadersVisible="False"
                                              ColumnHeadersVisible="False" ReadOnly="True">
                             </wf:DataGridView>
                         </WindowsFormsHost>

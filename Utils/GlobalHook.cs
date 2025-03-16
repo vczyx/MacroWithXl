@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Windows.Forms;
 
-namespace InputMacro3
+namespace InputMacro3.Utils
 {
   /*
       [기능]

@@ -39,6 +39,9 @@
         <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
           <HintPath>packages\Microsoft.Office.Interop.Excel.15.0.4795.1001\lib\net20\Microsoft.Office.Interop.Excel.dll</HintPath>
         </Reference>
+        <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+          <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+        </Reference>
         <Reference Include="System"/>
         <Reference Include="System.Core"/>
         <Reference Include="System.Data"/>
@@ -62,13 +65,14 @@
             <Generator>MSBuild:Compile</Generator>
             <SubType>Designer</SubType>
         </ApplicationDefinition>
-        <Compile Include="BrushAnimation.cs" />
-        <Compile Include="ClipboardHelper.cs" />
-        <Compile Include="Config.cs" />
-        <Compile Include="EasingFunction\EaseOutCubic.cs" />
+        <Compile Include="Data\Config.cs" />
+        <Compile Include="Data\DataLoader.cs" />
+        <Compile Include="EasingFunctions\EaseOutCubic.cs" />
         <Compile Include="File.cs" />
-        <Compile Include="Utilities.cs" />
-        <Compile Include="WindowUtilities.cs" />
+        <Compile Include="Utils\BrushAnimation.cs" />
+        <Compile Include="Utils\GlobalHook.cs" />
+        <Compile Include="Utils\Utilities.cs" />
+        <Compile Include="Utils\WindowUtilities.cs" />
         <Page Include="MainWindow.xaml">
             <Generator>MSBuild:Compile</Generator>
             <SubType>Designer</SubType>
@@ -77,8 +81,7 @@
             <DependentUpon>App.xaml</DependentUpon>
             <SubType>Code</SubType>
         </Compile>
-        <Compile Include="EasingFunction\EaseOutExpo.cs" />
-        <Compile Include="GlobalHook.cs" />
+        <Compile Include="EasingFunctions\EaseOutExpo.cs" />
         <Compile Include="Macro\ESendKey.cs" />
         <Compile Include="Macro\ExecutableArray.cs" />
         <Compile Include="Macro\IExecutable.cs" />
@@ -103,11 +106,8 @@
         </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
-        <None Include="App.config"/>
+        <None Include="App.config" />
         <None Include="packages.config" />
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Model\" />
     </ItemGroup>
     <ItemGroup>
       <Resource Include="Assets\loading.gif" />
@@ -119,9 +119,9 @@
       <Resource Include="favicon.ico" />
     </ItemGroup>
     <ItemGroup>
-      <Resource Include="Fonts\NanumSquareB.ttf" />
-      <Resource Include="Fonts\NanumSquareL.ttf" />
-      <Resource Include="Fonts\NanumSquareR.ttf" />
+      <Resource Include="Fonts\AppleSDGothicNeoEB.ttf" />
+      <Resource Include="Fonts\AppleSDGothicNeoR.ttf" />
+      <Resource Include="Fonts\AppleSDGothicNeoSB.ttf" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
 </Project>

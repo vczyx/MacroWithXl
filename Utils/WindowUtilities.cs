@@ -6,7 +6,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
-namespace InputMacro3
+namespace InputMacro3.Utils
 {
   public static class WindowUtilities
   {
