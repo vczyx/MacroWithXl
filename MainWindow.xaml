@@ -7,7 +7,7 @@
         xmlns:gif="https://github.com/XamlAnimatedGif/XamlAnimatedGif"
         xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
         mc:Ignorable="d"
-        Title="InputMacro 3.1" Height="300" Width="350"
+        Title="InputMacro 3.2" Height="300" Width="350"
         SizeToContent="WidthAndHeight"
         Loaded="MainWindow_OnLoaded"
         ResizeMode="CanMinimize"
@@ -15,7 +15,7 @@
         Background="#f5f5f5"
         Closing="MainWindow_OnClosing"
         Topmost="True"
-        Icon="favicon.ico">
+        Icon="Assets/icon.ico">
     
 
 
