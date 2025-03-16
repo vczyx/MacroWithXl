@@ -29,6 +29,7 @@
                         <TextBlock FontSize="24" FontWeight="ExtraBold" Margin="0,5,0,0">Step 1</TextBlock>
                         <TextBlock>실행 할 매크로를 선택하십시오.</TextBlock>
                         <ListView x:Name="LvPg1Explorer" SelectionMode="Single"
+                                  FontFamily="{StaticResource SgnM}"
                                   MouseDoubleClick="ListViewExplorer_OnMouseDoubleClick"
                                   KeyDown="ListViewExplorer_OnKeyDown"
                                   Height="190"

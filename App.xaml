@@ -14,16 +14,16 @@
 
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="#4c4c4c" />
-            <Setter Property="FontFamily" Value="{StaticResource SgnR}" />
+            <Setter Property="FontFamily" Value="{StaticResource SgnM}" />
             <Style.Triggers>
                 <Trigger Property="FontWeight" Value="Bold">
                     <Setter Property="FontFamily" Value="{StaticResource SgnB}" />
                 </Trigger>
                 <Trigger Property="FontWeight" Value="Regular">
-                    <Setter Property="FontFamily" Value="{StaticResource SgnR}" />
+                    <Setter Property="FontFamily" Value="{StaticResource SgnM}" />
                 </Trigger>
                 <Trigger Property="FontWeight" Value="Normal">
-                    <Setter Property="FontFamily" Value="{StaticResource SgnR}" />
+                    <Setter Property="FontFamily" Value="{StaticResource SgnM}" />
                 </Trigger>
                 <Trigger Property="FontWeight" Value="SemiBold">
                     <Setter Property="FontFamily" Value="{StaticResource SgnSb}" />
@@ -33,9 +33,6 @@
                 </Trigger>
                 <Trigger Property="FontWeight" Value="ExtraBold">
                     <Setter Property="FontFamily" Value="{StaticResource SgnEb}" />
-                </Trigger>
-                <Trigger Property="FontWeight" Value="Medium">
-                    <Setter Property="FontFamily" Value="{StaticResource SgnM}" />
                 </Trigger>
             </Style.Triggers>
         </Style>
