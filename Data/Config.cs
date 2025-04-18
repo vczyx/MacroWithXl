@@ -27,5 +27,7 @@ namespace InputMacro3.Data
 
     public Macro macro { get; set; } = new Macro();
     public ViewPage[] viewPages { get; set; } = new[] { new ViewPage(), new ViewPage() };
+
+    public bool closeAfterLoad { get; set; } = true;
   }
 }

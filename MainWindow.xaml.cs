@@ -259,8 +259,12 @@ namespace InputMacro3
       {
         _workbook.AfterSave -= WorkbookOnAfterSave;
         _workbook.BeforeClose -= WorkbookOnBeforeClose;
-        _workbook.Close(false);
-        CloseExcel();
+        if (_config.closeAfterLoad)
+        {
+          _workbook.Close(false);
+          CloseExcel();
+        }
+        
         Application.Current.Shutdown();
       }
       catch
@@ -375,11 +379,9 @@ namespace InputMacro3
 
     private void LoadLog(string text)
     {
-      Dispatcher.Invoke(() => {
-        TbPg3Status.Text = $"[{Path.GetFileName(currentMacroData)}] {text}";
-      });
+      Dispatcher.Invoke(() => { TbPg3Status.Text = $"[{Path.GetFileName(currentMacroData)}] {text}"; });
     }
-    
+
     private void LoadData()
     {
       var bw = new BackgroundWorker();
@@ -397,7 +399,7 @@ namespace InputMacro3
             PbPg3Loading.Value = loadProgressValue;
             TbPg3Loading.Text = $"{Math.Floor((double)loadProgressValue / loadProgressMax * 100)}%";
           });
-          
+
           LoadLog("설정을 불러오는 중...");
           _config = LoadConfig(_workbook);
           loadProgressMax += _config.macro.maxCount;
@@ -408,7 +410,7 @@ namespace InputMacro3
           if (!string.IsNullOrEmpty(viewPageConfig.descriptions))
             configHeights[3] += (configHeights[3] == 0 ? Heights[3] : 0) + 20;
           loadProgressValue++;
-          
+
           LoadLog("이미지를 불러오는 중...");
 
           if (viewPageConfig.height > 0)
@@ -472,14 +474,17 @@ namespace InputMacro3
         }
         catch (Exception exc)
         {
-          MessageBox.Show($"데이터를 불러오는데 오류가 발생했습니다.\n{exc.Message}", "InputMacro", MessageBoxButton.OK, MessageBoxImage.Error );
+          MessageBox.Show($"데이터를 불러오는데 오류가 발생했습니다.\n{exc.Message}", "InputMacro", MessageBoxButton.OK, MessageBoxImage.Error);
           Dispatcher.Invoke(() => { MovePage(0); });
         }
         finally
         {
           _isLoaded = true;
-          _workbook.Close(false);
-          CloseExcel();
+          if (_config.closeAfterLoad)
+          {
+            _workbook.Close(false);
+            CloseExcel();
+          }
         }
       };
       bw.RunWorkerAsync();
