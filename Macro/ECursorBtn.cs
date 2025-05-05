@@ -59,7 +59,7 @@ namespace InputMacro3.Macro
 
     public string value { get; }
     
-    public ButtonType button { get; }
+    public ButtonType button { get; } = ButtonType.Left;
 
     public ECursorBtn(string value)
     {

@@ -77,7 +77,7 @@ namespace InputMacro3
       _macro.PropertyChanged += MacroOnPropertyChanged;
       _macro.RequestedCancellation += MacroOnRequestedCancellation;
 
-      // new Data.Config().CopyObjectJson();
+      new Data.Config().CopyObjectJson();
     }
     public void MovePage(int page, int floor = 0)
     {
@@ -241,7 +241,7 @@ namespace InputMacro3
       try
       {
         if (obj == null) return;
-        Marshal.ReleaseComObject(obj); // 액셀 객체 해제
+        Marshal.ReleaseComObject(obj);
         obj = null;
       }
       catch (Exception ex)
@@ -252,7 +252,7 @@ namespace InputMacro3
       }
       finally
       {
-        GC.Collect(); // 가비지 수집
+        GC.Collect(); 
       }
     }
     private void MainWindow_OnClosing(object sender, CancelEventArgs e)
@@ -266,7 +266,7 @@ namespace InputMacro3
           _workbook.Close(false);
           CloseExcel();
         }
-        
+
         Application.Current.Shutdown();
       }
       catch
@@ -295,7 +295,6 @@ namespace InputMacro3
     {
       var bw = new BackgroundWorker();
       bw.DoWork += (sender, args) => {
-        // Thread.Sleep(300);
         try
         {
           CloseExcel();
@@ -308,7 +307,6 @@ namespace InputMacro3
           });
           Console.WriteLine("Clearing Data...");
 
-          // nudSpeed.Value = 0;
           _macro.interval = 0;
           Dispatcher.Invoke(() => { DgvPg5DataView.Columns.Clear(); });
           _executions.Clear();
@@ -319,7 +317,6 @@ namespace InputMacro3
             Visible = true
           };
           _workbook = _excelApplication.Workbooks.Open(currentMacroData);
-          _worksheet = (Excel.Worksheet)_workbook.Worksheets["macro"];
           _workbook.AfterSave += WorkbookOnAfterSave;
           _workbook.BeforeClose += WorkbookOnBeforeClose;
           _config = LoadConfig(_workbook);
@@ -405,7 +402,12 @@ namespace InputMacro3
 
           LoadLog("설정을 불러오는 중...");
           _config = LoadConfig(_workbook);
-          loadProgressMax += _config.macro.maxCount;
+
+          for (var i = 1; i <= _config.macroCount; i++)
+          {
+            var x = (Excel.Worksheet)_workbook.Worksheets[$"macro{i}"];
+            loadProgressMax += Convert.ToInt32(x.Range["B2"].Value) + 1;
+          }
 
           var viewPageConfig = _config.viewPages[1];
           configHeights[3] = viewPageConfig.height;
@@ -422,58 +424,65 @@ namespace InputMacro3
           loadProgressValue++;
 
           var r = 0;
-          LoadLog("열 목록을 불러오는 중...");
-          while (true)
+          var mxc = 0;
+          for (var mc = 1; mc <= _config.macroCount; mc++)
           {
-            var columnHeader = _worksheet.Cells[2, 3 + r] as Excel.Range;
-            if (columnHeader?.Value == null) break;
-
-            Dispatcher.Invoke(() => { DgvPg5DataView.Columns.Add($"a{r}", $"{columnHeader.Value2}"); });
-            LoadLog($"열 {r}({columnHeader.Value2})을 불러왔습니다");
-            r++;
-          }
-
-          loadProgressValue++;
-          LoadLog("데이터를 불러오는 중...");
-          var c = 0;
-          while (true)
-          {
-            var any = false;
-            var ls = new List<object>();
-            for (int i = 0; i < r; i++)
+            _worksheet = (Excel.Worksheet)_workbook.Worksheets[$"macro{mc}"];
+            var n = 0;
+            LoadLog("열 목록을 불러오는 중...");
+            while (true)
             {
-              var x = _worksheet.Cells[3 + c, 3 + i] as Excel.Range;
-              ls.Add(x?.Value);
-              if (x?.Value != null && x.Value.ToString() != "")
-                any = true;
+              var columnHeader = _worksheet.Cells[2, 3 + n] as Excel.Range;
+              if (columnHeader?.Value == null) break;
 
-              // break;
+              LoadLog($"열 {n}({columnHeader.Value2})을 불러왔습니다");
+              n++;
+              if (r < n)
+                Dispatcher.Invoke(() => { DgvPg5DataView.Columns.Add($"a{mc}_{n}", ""); });
+              r = Math.Max(r, n);
             }
-            if (!any) break;
-            Dispatcher.Invoke(() => { DgvPg5DataView.Rows.Add(); });
-
-            for (var i = 0; i < ls.Count; i++)
-            {
-              if (ls[i] == null) continue;
-              Dispatcher.Invoke(() => { DgvPg5DataView[i, c].Value = ls[i]; });
-              _executions.Add((ls[i].ToString(), i, c));
-              LoadLog($"열 {c}의 행 {i}을 불러왔습니다. ({ls[i]})");
-            }
-
-            c++;
             loadProgressValue++;
-            Dispatcher.Invoke(() => {
-              PbPg3Loading.Maximum = loadProgressMax;
-              PbPg3Loading.Value = loadProgressValue;
-              TbPg3Loading.Text = $"{Math.Floor((double)loadProgressValue / loadProgressMax * 100)}%";
-            });
+
+            LoadLog("데이터를 불러오는 중...");
+            var c = 0;
+            while (true)
+            {
+              var any = false;
+              var ls = new List<object>();
+              for (int i = 0; i < n; i++)
+              {
+                var x = _worksheet.Cells[3 + c, 3 + i] as Excel.Range;
+                ls.Add(x?.Value);
+                if (x?.Value != null && x.Value.ToString() != "")
+                  any = true;
+
+              }
+              if (!any) break;
+              Dispatcher.Invoke(() => { DgvPg5DataView.Rows.Add(); });
+
+              for (var i = 0; i < ls.Count; i++)
+              {
+                if (ls[i] == null) continue;
+                Dispatcher.Invoke(() => { DgvPg5DataView[i, mxc + c].Value = ls[i]; });
+                _executions.Add((ls[i].ToString(), i, mxc + c));
+                LoadLog($"열 {mxc + c}의 행 {i}을 불러왔습니다. ({ls[i]})");
+              }
+              c++;
+              loadProgressValue++;
+              Dispatcher.Invoke(() => {
+                PbPg3Loading.Maximum = loadProgressMax;
+                PbPg3Loading.Value = loadProgressValue;
+                TbPg3Loading.Text = $"{Math.Floor((double)loadProgressValue / loadProgressMax * 100)}%";
+              });
+            }
+            mxc += c;
           }
           Dispatcher.Invoke(() => {
             TbPg4Desc.Text = viewPageConfig.descriptions;
             TbPg4Title.Text = Path.GetFileName(currentMacroData);
             MovePage(3);
           });
-          _macro.Set(_executions.Select(x => x.exe), _config.macro.interval);
+          _macro.Set(_executions.Select(x => x.exe), _config.macroInterval);
           _macro.isStandBy = true;
         }
         catch (Exception exc)
@@ -521,11 +530,9 @@ namespace InputMacro3
       if (_macro.isExecuting)
         _macro.Cancel();
       else
+
         // _macro.Start(_executions.Select(x => x.exe).ToArray<IExecutable>(), _config.macro.interval);
         _macro.Start();
-
-
-      
     }
 
     private void MacroOnRequestedCancellation(object sender, EventArgs e)

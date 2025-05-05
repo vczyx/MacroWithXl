@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using InputMacro.Macro;
 
 namespace InputMacro3.Macro
@@ -16,7 +15,6 @@ namespace InputMacro3.Macro
     public void Execute()
     {
       SetCursorPos(position.x, position.y);
-      Console.WriteLine($"Cursor pos: {position.x}, {position.y}");
     }
 
     public string value { get; }

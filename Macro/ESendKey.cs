@@ -1,5 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using InputMacro.Macro;
 
 namespace InputMacro3.Macro
@@ -10,8 +9,7 @@ namespace InputMacro3.Macro
 
     public void Execute()
     {
-      // SendKeys.SendWait(value);
-      Console.WriteLine("sendKey");
+      SendKeys.SendWait(value);
     }
 
     public string value { get; }

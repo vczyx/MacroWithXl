@@ -16,16 +16,9 @@ namespace InputMacro3.Data
 
       public string imageRange { get; set; } = "";
     }
-
-    [Serializable]
-    public class Macro
-    {
-      public int interval { get; set; } = 0;
-
-      public int maxCount { get; set; } = 0;
-    }
-
-    public Macro macro { get; set; } = new Macro();
+    
+    public int macroInterval { get; set; } = 0;
+    public int macroCount { get; set; } = 0;
     public ViewPage[] viewPages { get; set; } = new[] { new ViewPage(), new ViewPage() };
 
     public bool closeAfterLoad { get; set; } = true;
