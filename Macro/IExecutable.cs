@@ -2,6 +2,8 @@
 {
   public interface IExecutable
   {
-   void Execute();
+    string identifier { get; }
+    void Execute();
+    string value { get; }
   }
 }

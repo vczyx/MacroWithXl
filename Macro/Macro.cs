@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using InputMacro.Macro;
@@ -134,13 +135,24 @@ namespace InputMacro3.Macro
 
     #region ############ Public Methods ##########
 
-    public void Start(IEnumerable<IExecutable> executions, int interval)
+    public void Set(IEnumerable<IExecutable> executions, int interval)
     {
       this.executions = executions;
       this.interval = interval;
+    }
+    public void Set(IEnumerable<string> executionValues, int interval)
+    {
+      Set
+      (
+        executionValues.Select(value => Activator.CreateInstance(ExecutableExtensions.GetExecutableType(value, out var resultValue), resultValue) as IExecutable),
+        interval
+      );
+    }
+    
+    public void Start()
+    {
       CallStart();
     }
-
     public void Cancel()
     {
       CallStop();

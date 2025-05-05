@@ -69,6 +69,9 @@
         <Compile Include="Data\DataLoader.cs" />
         <Compile Include="EasingFunctions\EaseOutCubic.cs" />
         <Compile Include="File.cs" />
+        <Compile Include="Macro\ECursorBtn.cs" />
+        <Compile Include="Macro\ECursorPos.cs" />
+        <Compile Include="Macro\ExecutableExtensions.cs" />
         <Compile Include="Utils\BrushAnimation.cs" />
         <Compile Include="Utils\GlobalHook.cs" />
         <Compile Include="Utils\Utilities.cs" />
@@ -83,7 +86,6 @@
         </Compile>
         <Compile Include="EasingFunctions\EaseOutExpo.cs" />
         <Compile Include="Macro\ESendKey.cs" />
-        <Compile Include="Macro\ExecutableArray.cs" />
         <Compile Include="Macro\IExecutable.cs" />
         <Compile Include="Macro\Macro.cs" />
         <Compile Include="MainWindow.xaml.cs">

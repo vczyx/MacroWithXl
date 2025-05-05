@@ -158,6 +158,7 @@ namespace InputMacro3
       if (!(LvPg1Explorer.SelectedItem is File data)) return;
       currentMacroData = Path.Combine(Environment.CurrentDirectory, "Data", data.name);
       Topmost = true;
+      Topmost = false;
       _isLoaded = true;
       configHeights[1] = 0;
       configWidths[1] = 0;
@@ -185,6 +186,7 @@ namespace InputMacro3
         MovePage(2);
         LoadData();
         Topmost = true;
+        Topmost = false;
       }
     }
 
@@ -210,7 +212,7 @@ namespace InputMacro3
     private Config _config;
     private int _progressValue;
 
-    private readonly List<(ESendKey exe, int x, int y)> _executions = new List<(ESendKey, int, int)>();
+    private readonly List<(string exe, int x, int y)> _executions = new List<(string, int, int)>();
     private void KeyDownHandler(object sender, System.Windows.Forms.KeyEventArgs e)
     {
       if (e.KeyCode == Keys.F9)
@@ -373,6 +375,7 @@ namespace InputMacro3
           MovePage(2);
           LoadData();
           Topmost = true;
+          Topmost = false;
         }
       });
     }
@@ -453,7 +456,7 @@ namespace InputMacro3
             {
               if (ls[i] == null) continue;
               Dispatcher.Invoke(() => { DgvPg5DataView[i, c].Value = ls[i]; });
-              _executions.Add((new ESendKey(ls[i].ToString()), i, c));
+              _executions.Add((ls[i].ToString(), i, c));
               LoadLog($"열 {c}의 행 {i}을 불러왔습니다. ({ls[i]})");
             }
 
@@ -470,6 +473,7 @@ namespace InputMacro3
             TbPg4Title.Text = Path.GetFileName(currentMacroData);
             MovePage(3);
           });
+          _macro.Set(_executions.Select(x => x.exe), _config.macro.interval);
           _macro.isStandBy = true;
         }
         catch (Exception exc)
@@ -508,12 +512,20 @@ namespace InputMacro3
 
     private void Toggle()
     {
+      _executions.Select(x => {
+        Console.WriteLine(x.exe);
+        return x;
+      });
       if (!BtnPg4Execute.IsEnabled) return;
 
       if (_macro.isExecuting)
         _macro.Cancel();
       else
-        _macro.Start(_executions.Select(x => x.exe).ToArray<IExecutable>(), _config.macro.interval);
+        // _macro.Start(_executions.Select(x => x.exe).ToArray<IExecutable>(), _config.macro.interval);
+        _macro.Start();
+
+
+      
     }
 
     private void MacroOnRequestedCancellation(object sender, EventArgs e)
