@@ -142,11 +142,7 @@ namespace InputMacro3.Macro
     }
     public void Set(IEnumerable<string> executionValues, int interval)
     {
-      Set
-      (
-        executionValues.Select(value => Activator.CreateInstance(ExecutableExtensions.GetExecutableType(value, out var resultValue), resultValue) as IExecutable),
-        interval
-      );
+      Set(executionValues.Select(ExecutableExtensions.CreateExecutable), interval);
     }
     
     public void Start()
@@ -193,7 +189,7 @@ namespace InputMacro3.Macro
           {
             BeginExecute?.Invoke(this, new ExecuteEventArgs(execution, i));
             Log($"[{i:000}. Execute] {execution}", LogPriorities.Info);
-            execution.Execute();
+            await execution.Execute();
             EndExecute?.Invoke(this, new ExecuteEventArgs(execution, i));
           }
           catch (Exception ex)

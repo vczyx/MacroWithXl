@@ -1,9 +1,14 @@
-﻿namespace InputMacro.Macro
+﻿using System.Threading.Tasks;
+
+namespace InputMacro.Macro
 {
   public interface IExecutable
   {
     string identifier { get; }
-    void Execute();
+    string description { get; }
+    string arguments { get; }
+
+    Task Execute();
     string value { get; }
   }
 }

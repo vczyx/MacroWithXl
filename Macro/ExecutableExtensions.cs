@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using InputMacro.Macro;
 
 namespace InputMacro3.Macro
@@ -10,10 +12,11 @@ namespace InputMacro3.Macro
     public const char StartSymbol = '$';
     public const char EndSymbol = ':';
 
-    public static readonly Type[] FindExecutableTypes = { typeof(ECursorBtn), typeof(ECursorPos) };
+    public static Type[] FindExecutableTypes;
     public static readonly Type DefaultExecutableTypes = typeof(ESendKey);
 
     public static Dictionary<string, Type> findExecutableDictionary { get; }
+    public static Dictionary<string, IExecutable> emptyInstanceExecutableDictionary { get; }
 
     public static bool TryParse(string identifier, string value, out string result)
     {
@@ -24,10 +27,19 @@ namespace InputMacro3.Macro
 
     static ExecutableExtensions()
     {
+      FindExecutableTypes = Assembly.GetExecutingAssembly()
+        .GetTypes()
+        .Where(t => typeof(IExecutable).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract)
+        .ToArray();
+
+      emptyInstanceExecutableDictionary = new Dictionary<string, IExecutable>();
       findExecutableDictionary = FindExecutableTypes.Select(type => {
-        if (!(Activator.CreateInstance(type, "") is IExecutable instance))
-          throw new Exception($"{type} is not an executable type");
-        return (instance.identifier, type);
+        if (Activator.CreateInstance(type, "") is IExecutable instance)
+        {
+          emptyInstanceExecutableDictionary.Add(instance.identifier, instance);
+          return (instance.identifier, type);
+        }
+        else throw new NotSupportedException($"Cannot create instance of type {type}");
       }).ToDictionary(tuple => tuple.identifier, tuple => tuple.type);
     }
 
@@ -38,7 +50,7 @@ namespace InputMacro3.Macro
         result = value;
         return DefaultExecutableTypes;
       }
-      
+
       var identifierPart = value.Split(StartSymbol)[1].Split(EndSymbol)[0];
       if (findExecutableDictionary.TryGetValue(identifierPart, out var type))
       {
@@ -50,6 +62,17 @@ namespace InputMacro3.Macro
         result = value;
         return DefaultExecutableTypes;
       }
+    }
+
+    public static IExecutable CreateExecutable(string value)
+    {
+      return Activator.CreateInstance(GetExecutableType(value, out var resultValue), resultValue) as IExecutable;
+    }
+
+    public static async Task Execute(string value)
+    {
+      var executable = CreateExecutable(value);
+      await executable.Execute();
     }
   }
 }

@@ -252,7 +252,7 @@ namespace InputMacro3
       }
       finally
       {
-        GC.Collect(); 
+        GC.Collect();
       }
     }
     private void MainWindow_OnClosing(object sender, CancelEventArgs e)
@@ -327,6 +327,17 @@ namespace InputMacro3
               CloseExcel();
               TbPg2Message.Text = "config가 존재하지 않습니다. 다른 매크로 파일을 선택하세요.";
               MovePage(1, 1);
+            });
+            return;
+          }
+
+          if (_config.forceLoad)
+          {
+            Dispatcher.Invoke(() => {
+              MovePage(2);
+              LoadData();
+              Topmost = true;
+              Topmost = false;
             });
             return;
           }
@@ -455,7 +466,6 @@ namespace InputMacro3
                 ls.Add(x?.Value);
                 if (x?.Value != null && x.Value.ToString() != "")
                   any = true;
-
               }
               if (!any) break;
               Dispatcher.Invoke(() => { DgvPg5DataView.Rows.Add(); });

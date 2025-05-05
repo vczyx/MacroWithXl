@@ -22,5 +22,7 @@ namespace InputMacro3.Data
     public ViewPage[] viewPages { get; set; } = new[] { new ViewPage(), new ViewPage() };
 
     public bool closeAfterLoad { get; set; } = true;
+
+    public bool forceLoad { get; set; } = false;
   }
 }

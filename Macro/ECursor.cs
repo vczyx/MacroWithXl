@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using InputMacro.Macro;
 
 namespace InputMacro3.Macro
 {
-  public class ECursorPos : IExecutable
+  public class ECursor : IExecutable
   {
+    public string identifier => "cursor";    
+    
+    public string description => "커서 위치를 x:<x>, y:<y>로 이동시킵니다.";
+
+    public string arguments => "<x>,<y>";
+
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     public static extern int SetCursorPos(int x, int y);
-    
-    public string identifier => "cursor";
 
-    public void Execute()
+    public async Task Execute()
     {
       SetCursorPos(position.x, position.y);
     }
@@ -21,7 +26,7 @@ namespace InputMacro3.Macro
     
     public (int x, int y) position { get; }
 
-    public ECursorPos(string value)
+    public ECursor(string value)
     {
       this.value = value;
       if (!value.Contains(','))
