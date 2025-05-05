@@ -1,6 +1,8 @@
 # InputMacro 3.3
 > 본 프로그램은 비영리적인 목적에 한해서만 사용할 수 있습니다. 이를 영리적인 용도로 사용할 경우 발생할 수 있는 모든 법적·재정적 책임 및 불이익은 전적으로 사용자에게 있으며, 이에 대해 제작자는 어떠한 책임도 지지 않습니다.
 
+[최신 버젼 다운로드](https://github.com/vczyx/ipmcr/releases)
+
 ## 개요
 **엑셀(*.xlsx, *.xls, *.xlsm 등) 파일을 활용**하여 **매크로 명령을 실행** 시킬 수 있는 프로그램 입니다.
 직관적인 UI/UX를 채택하여, 사용자 친화적인 프로그램이 될 수 있도록 제작하였습니다.
@@ -200,11 +202,11 @@
 ![image](https://github.com/user-attachments/assets/97b8c011-d781-4797-9b01-175fb821928d)
 
 ## Requires
-- .NET Framework v4.8
-- Microsoft Office Excel
+- [.NET Framework v4.8](https://dotnet.microsoft.com/ko-kr/download/dotnet-framework/net48)
+- [Microsoft Office Excel](https://www.microsoft.com/ko-kr/microsoft-365/get-office-and-microsoft-365-oem-download-page)
 
 ## License
-- MIT License
+- [MIT License](https://github.com/vczyx/ipmcr/blob/master/LICENSE)
 
 ## 사용 IDE 및 언어
 - Jetbrains Rider
