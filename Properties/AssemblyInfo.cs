@@ -7,11 +7,11 @@ using System.Windows;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("InputMacro")]
-[assembly: AssemblyDescription("Automation Macro Program")]
+[assembly: AssemblyTitle("XlMacro")]
+[assembly: AssemblyDescription("Automation Macro Program With Spreadsheet")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("")]
+[assembly: AssemblyCompany("vczyx")]
+[assembly: AssemblyProduct("xlmcr")]
 [assembly: AssemblyCopyright("Copyright © vczyx 2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
