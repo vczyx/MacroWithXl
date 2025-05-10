@@ -399,6 +399,11 @@ namespace InputMacro3
       bw.DoWork += (sender, args) => {
         LoadLog("초기화 중...");
         loadProgressValue = 0;
+        Dispatcher.Invoke(() => {
+          DgvPg5DataView.Columns.Clear();
+          DgvPg5DataView.Rows.Clear();
+          _executions.Clear();
+        });
         _macro.isStandBy = false;
 
         try
