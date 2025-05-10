@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using System.Windows;
 using InputMacro.Macro;
+using InputMacro3.Utils;
 
 namespace InputMacro3.Macro.Clipboard
 {
@@ -13,7 +16,8 @@ namespace InputMacro3.Macro.Clipboard
 
     public async Task Execute()
     {
-      System.Windows.Clipboard.SetText(value);
+      await STATask.Run(() => System.Windows.Clipboard.SetText(value));
+      Console.WriteLine(value);
     }
 
     public string value { get; }

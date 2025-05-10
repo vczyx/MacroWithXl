@@ -77,7 +77,7 @@ namespace InputMacro3
       _macro.PropertyChanged += MacroOnPropertyChanged;
       _macro.RequestedCancellation += MacroOnRequestedCancellation;
 
-      new Data.Config().CopyObjectJson();
+      // new Data.Config().CopyObjectJson();
     }
     public void MovePage(int page, int floor = 0)
     {

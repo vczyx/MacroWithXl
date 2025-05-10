@@ -82,6 +82,7 @@
         <Compile Include="Macro\Util\ELog.cs" />
         <Compile Include="Utils\BrushAnimation.cs" />
         <Compile Include="Utils\GlobalHook.cs" />
+        <Compile Include="Utils\STATask.cs" />
         <Compile Include="Utils\Utilities.cs" />
         <Compile Include="Utils\WindowUtilities.cs" />
         <Page Include="MainWindow.xaml">
