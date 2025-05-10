@@ -69,8 +69,10 @@
         <Compile Include="Data\DataLoader.cs" />
         <Compile Include="EasingFunctions\EaseOutCubic.cs" />
         <Compile Include="File.cs" />
+        <Compile Include="Macro\Clipboard\ESet.cs" />
         <Compile Include="Macro\EClick.cs" />
         <Compile Include="Macro\ECursor.cs" />
+        <Compile Include="Macro\ESendInput.cs" />
         <Compile Include="Macro\EShell.cs" />
         <Compile Include="Macro\EVShell.cs" />
         <Compile Include="Macro\EWait.cs" />
