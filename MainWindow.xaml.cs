@@ -403,6 +403,8 @@ namespace InputMacro3
           DgvPg5DataView.Columns.Clear();
           DgvPg5DataView.Rows.Clear();
           _executions.Clear();
+          PbPg4Progress.Value = 0;
+          TbPg4Progress.Text = "0%";
         });
         _macro.isStandBy = false;
 
@@ -418,6 +420,13 @@ namespace InputMacro3
 
           LoadLog("설정을 불러오는 중...");
           _config = LoadConfig(_workbook);
+
+          for (var i = 1; i <= _config.macroCount; i++)
+          {
+            var curChk = _workbook.Worksheets.Cast<Excel.Worksheet>().Any(sheet => sheet.Name == $"macro{i}");
+            if (!curChk)
+              throw new Exception($"매크로 설정 시트 \"macro{i}\"을(를) 찾을 수 없습니다.");
+          }
 
           for (var i = 1; i <= _config.macroCount; i++)
           {
@@ -439,50 +448,53 @@ namespace InputMacro3
 
           loadProgressValue++;
 
-          var r = 0;
-          var mxc = 0;
-          for (var mc = 1; mc <= _config.macroCount; mc++)
+          var maxColumnCount = 0;
+          var maxRowCount = 0;
+          for (var currentMacroIndex = 1; currentMacroIndex <= _config.macroCount; currentMacroIndex++)
           {
-            _worksheet = (Excel.Worksheet)_workbook.Worksheets[$"macro{mc}"];
-            var n = 0;
+            _worksheet = (Excel.Worksheet)_workbook.Worksheets[$"macro{currentMacroIndex}"];
+
+            // 열 목록(C2:~2) 불러오기
+            var currentColumnCount = 0;
             LoadLog("열 목록을 불러오는 중...");
             while (true)
             {
-              var columnHeader = _worksheet.Cells[2, 3 + n] as Excel.Range;
+              var columnHeader = _worksheet.Cells[2, 3 + currentColumnCount] as Excel.Range;
               if (columnHeader?.Value == null) break;
 
-              LoadLog($"열 {n}({columnHeader.Value2})을 불러왔습니다");
-              n++;
-              if (r < n)
-                Dispatcher.Invoke(() => { DgvPg5DataView.Columns.Add($"a{mc}_{n}", ""); });
-              r = Math.Max(r, n);
+              LoadLog($"열 {currentColumnCount}({columnHeader.Value2})을 불러왔습니다");
+              currentColumnCount++;
+              if (maxColumnCount < currentColumnCount)
+                Dispatcher.Invoke(() => { DgvPg5DataView.Columns.Add($"a{currentMacroIndex}_{currentColumnCount}", ""); });
+              maxColumnCount = Math.Max(maxColumnCount, currentColumnCount);
             }
             loadProgressValue++;
 
+            // 행 (데이터) 불러오기
             LoadLog("데이터를 불러오는 중...");
-            var c = 0;
+            var currentRowCount = 0;
             while (true)
             {
-              var any = false;
+              var hasRowData = false;
               var ls = new List<object>();
-              for (int i = 0; i < n; i++)
+              for (int i = 0; i < currentColumnCount; i++)
               {
-                var x = _worksheet.Cells[3 + c, 3 + i] as Excel.Range;
+                var x = _worksheet.Cells[3 + currentRowCount, 3 + i] as Excel.Range;
                 ls.Add(x?.Value);
                 if (x?.Value != null && x.Value.ToString() != "")
-                  any = true;
+                  hasRowData = true;
               }
-              if (!any) break;
+              if (!hasRowData) break;
               Dispatcher.Invoke(() => { DgvPg5DataView.Rows.Add(); });
 
               for (var i = 0; i < ls.Count; i++)
               {
                 if (ls[i] == null) continue;
-                Dispatcher.Invoke(() => { DgvPg5DataView[i, mxc + c].Value = ls[i]; });
-                _executions.Add((ls[i].ToString(), i, mxc + c));
-                LoadLog($"열 {mxc + c}의 행 {i}을 불러왔습니다. ({ls[i]})");
+                Dispatcher.Invoke(() => { DgvPg5DataView[i, maxRowCount + currentRowCount].Value = ls[i]; });
+                _executions.Add((ls[i].ToString(), i, maxRowCount + currentRowCount));
+                LoadLog($"열 {maxRowCount + currentRowCount}의 행 {i}을 불러왔습니다. ({ls[i]})");
               }
-              c++;
+              currentRowCount++;
               loadProgressValue++;
               Dispatcher.Invoke(() => {
                 PbPg3Loading.Maximum = loadProgressMax;
@@ -490,7 +502,7 @@ namespace InputMacro3
                 TbPg3Loading.Text = $"{Math.Floor((double)loadProgressValue / loadProgressMax * 100)}%";
               });
             }
-            mxc += c;
+            maxRowCount += currentRowCount;
           }
           Dispatcher.Invoke(() => {
             TbPg4Desc.Text = viewPageConfig.descriptions;
